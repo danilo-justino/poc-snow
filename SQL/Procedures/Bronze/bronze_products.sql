@@ -1,0 +1,20 @@
+-- PROCEDURE BRONZE   PRODUCTS
+
+CREATE OR REPLACE PROCEDURE load_bronze_products()
+RETURNS STRING
+LANGUAGE SQL
+AS
+$$
+BEGIN
+    COPY INTO BRONZE_PRODUCTS (raw_data, filename, created_at)
+    FROM (
+        SELECT
+            Cast($1 as variant) AS raw_data,                               -- conteúdo do parquet
+            METADATA$FILENAME AS filename,                -- nome do arquivo
+            CURRENT_TIMESTAMP() AS created_at             -- timestamp de carga
+        FROM @PUBLIC.NORTH/products/
+    )
+    FILE_FORMAT = (FORMAT_NAME = 'PARQUET_FORMAT');
+        RETURN 'Load Bronze products table successfully';
+END;
+$$;
